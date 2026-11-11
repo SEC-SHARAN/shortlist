@@ -1,0 +1,4 @@
+# Optional, enables true semantic matching + NER name fallback (about 2 GB with torch)
+sentence-transformers>=3.0
+spacy>=3.7
+# then: python -m spacy download en_core_web_sm

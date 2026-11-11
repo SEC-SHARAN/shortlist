@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ats
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ats
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U ats"], interval: 5s, retries: 10 }
+
+  backend:
+    build:
+      context: ./backend
+      args: { WITH_ML: "${WITH_ML:-0}" }       # WITH_ML=1 bakes in sentence-transformers + spaCy
+    environment:
+      ENV: production
+      DATABASE_URL: postgresql+psycopg2://ats:${POSTGRES_PASSWORD}@db:5432/ats
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY (>=32 chars) in .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+      STORAGE_DIR: /data/resumes
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+      USE_SPACY: ${WITH_ML:-0}
+      LLM_PROVIDER: ${LLM_PROVIDER:-none}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.openai.com/v1}
+    volumes: [resumes:/data/resumes]
+    depends_on: { db: { condition: service_healthy } }
+
+  frontend:
+    build: ./frontend
+    ports: ["8080:80"]
+    depends_on: [backend]
+
+volumes: { pgdata: {}, resumes: {} }
