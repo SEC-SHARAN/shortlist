@@ -16,8 +16,8 @@ class Settings:
         self.max_files_per_request = int(os.getenv("MAX_FILES_PER_REQUEST", "50"))
         cors_default = "*" if is_vercel else "http://localhost:5173"
         self.cors_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", cors_default).split(",") if o.strip()]
-        self.admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
-        self.admin_password = os.getenv("ADMIN_PASSWORD", "ChangeMe!123")
+        self.admin_email = os.getenv("ADMIN_EMAIL", "kvarunasharan05@gmail.com")
+        self.admin_password = os.getenv("ADMIN_PASSWORD", "1234")
         self.use_spacy = os.getenv("USE_SPACY", "0") == "1"
         if self.env == "production" and (self.secret_key == "dev-only-change-me" or len(self.secret_key) < 32):
             raise RuntimeError("Set SECRET_KEY (>=32 chars) in production")

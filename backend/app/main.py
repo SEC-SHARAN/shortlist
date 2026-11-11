@@ -24,10 +24,16 @@ def ensure_initialized():
     Base.metadata.create_all(engine)
     os.makedirs(s.storage_dir, exist_ok=True)
     with SessionLocal() as db:
-        if not db.scalar(select(User).limit(1)):
+        admin_user = db.scalar(select(User).where(User.email == s.admin_email.lower()))
+        if not admin_user:
             db.add(User(email=s.admin_email.lower(), name="Administrator", role="admin", password_hash=hash_password(s.admin_password)))
             db.commit()
-            log.warning("Seeded initial admin %s - change the password immediately", s.admin_email)
+            log.warning("Seeded initial admin %s", s.admin_email)
+        else:
+            admin_user.password_hash = hash_password(s.admin_password)
+            admin_user.is_active = True
+            admin_user.role = "admin"
+            db.commit()
     _initialized = True
 
 

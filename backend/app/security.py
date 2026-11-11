@@ -30,6 +30,5 @@ def decode_token(token: str) -> dict:
 
 
 def password_policy_error(pw: str) -> str | None:
-    if len(pw) < 10: return "Password must be at least 10 characters"
-    if not any(c.isdigit() for c in pw) or not any(c.isalpha() for c in pw): return "Password must contain letters and digits"
+    if len(pw) < 4: return "Password must be at least 4 characters"
     return None
