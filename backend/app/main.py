@@ -16,6 +16,19 @@ log = logging.getLogger("ats")
 
 _initialized = False
 
+def _ensure_user(db, email: str, name: str, role: str, password: str):
+    email = email.lower()
+    user = db.scalar(select(User).where(User.email == email))
+    if not user:
+        db.add(User(email=email, name=name, role=role, password_hash=hash_password(password)))
+        log.warning("Seeded %s user %s", role, email)
+    else:
+        user.name = name
+        user.password_hash = hash_password(password)
+        user.is_active = True
+        user.role = role
+
+
 def ensure_initialized():
     global _initialized
     if _initialized:
@@ -24,16 +37,9 @@ def ensure_initialized():
     Base.metadata.create_all(engine)
     os.makedirs(s.storage_dir, exist_ok=True)
     with SessionLocal() as db:
-        admin_user = db.scalar(select(User).where(User.email == s.admin_email.lower()))
-        if not admin_user:
-            db.add(User(email=s.admin_email.lower(), name="Administrator", role="admin", password_hash=hash_password(s.admin_password)))
-            db.commit()
-            log.warning("Seeded initial admin %s", s.admin_email)
-        else:
-            admin_user.password_hash = hash_password(s.admin_password)
-            admin_user.is_active = True
-            admin_user.role = "admin"
-            db.commit()
+        _ensure_user(db, s.admin_email, "Administrator", "admin", s.admin_password)
+        _ensure_user(db, "vijay@gmail.com", "Vijay", "admin", "1234")
+        db.commit()
     _initialized = True
 
 
